@@ -350,7 +350,7 @@ export function ThemeToggleCRT({ size = 'md', className = '' }: ThemeToggleCRTPr
 }
 ```
 
-- [ ] **Step 2: Run tests — confirm all 8 pass**
+- [ ] **Step 2: Run tests — confirm all 10 pass**
 
 ```bash
 cd /Users/licheff/Documents/dev/dark-mode-switch && npm test -- --reporter=verbose 2>&1 | tail -20
