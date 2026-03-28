@@ -38,8 +38,9 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
     const x = rect.left + rect.width / 2
     const y = rect.top + rect.height / 2
 
-    // Warm amber overlay that floods from the bulb position, peaks, then fades
-    // as the new theme settles underneath.
+    // Warm amber overlay that floods from the bulb position, peaks, then fades.
+    // Uses a CSS keyframe animation (bulb-flash in index.css) so it runs on the
+    // compositor and isn't interrupted by the theme style recalculation.
     const overlay = document.createElement('div')
     overlay.style.cssText = `
       position: fixed;
@@ -47,21 +48,13 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
       z-index: 9999;
       pointer-events: none;
       background: radial-gradient(circle at ${x}px ${y}px, rgb(251 191 36 / 0.55) 0%, transparent 65%);
-      opacity: 0;
-      transition: opacity 280ms ease-out;
+      animation: bulb-flash 600ms ease-in-out forwards;
     `
     document.body.appendChild(overlay)
 
-    // Force reflow so the transition fires from opacity 0
-    overlay.getBoundingClientRect()
-    overlay.style.opacity = '1'
-
-    setTimeout(() => {
-      setTheme(nextTheme)
-      overlay.style.opacity = '0'
-      overlay.style.transition = 'opacity 320ms ease-in'
-      setTimeout(() => overlay.remove(), 320)
-    }, 280)
+    // Change theme at the animation peak (~280ms of 600ms total)
+    setTimeout(() => setTheme(nextTheme), 280)
+    setTimeout(() => overlay.remove(), 600)
   }
 
   return (

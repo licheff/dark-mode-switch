@@ -53,6 +53,14 @@
   }
 }
 
+/* ThemeToggleBulb warm-flash overlay animation.
+   Runs on the compositor — unaffected by JS style recalculations mid-animation. */
+@keyframes bulb-flash {
+  0%   { opacity: 0; }
+  47%  { opacity: 1; }   /* peak at ~280ms of 600ms total — theme changes here */
+  100% { opacity: 0; }
+}
+
 
 @theme inline {
   --font-heading: var(--font-sans);
