@@ -38,23 +38,29 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
     const x = rect.left + rect.width / 2
     const y = rect.top + rect.height / 2
 
-    // Warm amber overlay that floods from the bulb position, peaks, then fades.
-    // Uses a CSS keyframe animation (bulb-flash in index.css) so it runs on the
-    // compositor and isn't interrupted by the theme style recalculation.
-    const overlay = document.createElement('div')
-    overlay.style.cssText = `
+    const isGoingDark = nextTheme === 'dark'
+    const ripple = document.createElement('div')
+    ripple.style.cssText = `
       position: fixed;
-      inset: 0;
+      top: ${y}px;
+      left: ${x}px;
+      width: 250vmax;
+      height: 250vmax;
+      border-radius: 50%;
       z-index: 9999;
       pointer-events: none;
-      background: radial-gradient(circle at ${x}px ${y}px, rgb(251 191 36 / 0.55) 0%, transparent 65%);
-      animation: bulb-flash 600ms ease-in-out forwards;
+      background: radial-gradient(circle, rgb(251 191 36 / 0.55) 0%, transparent 70%);
+      animation: ${isGoingDark
+        ? 'bulb-contract 900ms cubic-bezier(0.16, 1, 0.3, 1)'
+        : 'bulb-expand 1100ms cubic-bezier(0.06, 1, 0.2, 1)'
+      } forwards;
     `
-    document.body.appendChild(overlay)
+    document.body.appendChild(ripple)
 
-    // Change theme at the animation peak (~280ms of 600ms total)
-    setTimeout(() => setTheme(nextTheme), 280)
-    setTimeout(() => overlay.remove(), 600)
+    // Going dark: circle starts full-size covering the screen, so theme can change immediately.
+    // Going light: circle expands from the bulb, theme changes at 150ms while it's still small.
+    setTimeout(() => setTheme(nextTheme), isGoingDark ? 0 : 150)
+    setTimeout(() => ripple.remove(), isGoingDark ? 900 : 1100)
   }
 
   return (
