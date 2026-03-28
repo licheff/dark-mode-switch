@@ -47,7 +47,8 @@ Same size breakdown as existing variants:
 
 1. Reads `resolvedTheme` via `useTheme()` — handles system theme correctly (same as `ThemeToggleBulb`)
 2. **Mounted guard:** returns `null` until `resolvedTheme` is defined
-3. **Icon:** `Power` from lucide-react
+3. **No `useRef` needed:** unlike `ThemeToggleBulb`, the CRT overlay is always screen-centered — no button position is needed, so no `buttonRef` is required
+4. **Icon:** `Power` from lucide-react
    - Light mode: dark/slate color (`text-zinc-700`)
    - Dark mode: white (`text-white`)
 4. On click:
@@ -110,11 +111,20 @@ Added to `src/index.css`:
 
 @keyframes crt-on {
   0%   { transform: scaleY(0.002); opacity: 1; }
+  75%  { transform: scaleY(1);     opacity: 1; }
   100% { transform: scaleY(1);     opacity: 0; }
 }
 ```
 
+`crt-on` holds `opacity: 1` through the full expansion so the white screen properly fills before fading — without this, the overlay fades while growing and the effect reads as a weak shimmer rather than a screen powering on.
+
 `transform-origin: center center` ensures the collapse/expansion is always from the vertical midpoint of the screen.
+
+The overlay `animation` inline style includes `forwards` fill mode (`animation: crt-off 500ms ease-in forwards`) to prevent any visible state between the animation end and the `setTimeout` removal.
+
+**Easing:** `ease-in` for `crt-off` (abrupt collapse feels mechanical, like power cut), `ease-out` for `crt-on` (expansion decelerates as the phosphor fills).
+
+**Overlay color:** `background: white` is used for both directions. For `crt-off` this is a white flash that collapses on a light background. For `crt-on` it starts as a white line on a dark background — intentional, as the phosphor line is the brightest part of a CRT powering on.
 
 **Reduced motion:** the existing `@media (prefers-reduced-motion: reduce)` block in `index.css` does not need updating — the component checks `window.matchMedia` directly and skips the overlay entirely.
 
@@ -143,6 +153,6 @@ The Select dropdown and rendering logic update automatically.
 | File | Action | Change |
 |------|--------|--------|
 | `src/components/ThemeToggleCRT.tsx` | Create | New component |
-| `src/components/ThemeToggleCRT.test.tsx` | Create | Component tests |
+| `src/components/ThemeToggleCRT.test.tsx` | Create | Component tests — follow `ThemeToggleBulb.test.tsx` as reference: mounted guard renders null, correct aria-label per theme, overlay injected on click, `setTheme` called with correct value, reduced-motion skips overlay |
 | `src/index.css` | Edit | Add `crt-off` and `crt-on` keyframes |
 | `src/App.tsx` | Edit | Register `crt` variant |
