@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ComponentType } from 'react'
 import { ThemeToggleRipple } from './components/ThemeToggleRipple'
 import { ThemeToggleBulb } from './components/ThemeToggleBulb'
+import { ThemeToggleCRT } from './components/ThemeToggleCRT'
 import {
   Select,
   SelectContent,
@@ -10,12 +11,13 @@ import {
   SelectValue,
 } from './components/ui/select'
 
-type VariantKey = 'ripple' | 'bulb'
+type VariantKey = 'ripple' | 'bulb' | 'crt'
 
 // Add new variants here — the Select and registry update automatically.
 const variants: Record<VariantKey, { label: string; component: ComponentType<{ size?: 'sm' | 'md' | 'lg'; className?: string }> }> = {
   ripple: { label: 'Ripple', component: ThemeToggleRipple },
   bulb:   { label: 'Bulb',   component: ThemeToggleBulb },
+  crt:    { label: 'CRT',    component: ThemeToggleCRT },
 }
 
 export default function App() {
