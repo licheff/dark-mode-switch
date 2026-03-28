@@ -1,0 +1,75 @@
+/*
+  dark-mode-switch animations
+  Import this file in your project's global CSS:
+    @import 'dark-mode-switch/style.css'
+
+  You also need this in your CSS if using next-themes with class strategy:
+    @custom-variant dark (&:is(.dark *));
+*/
+
+/* View Transitions ripple */
+::view-transition-new(root) {
+  clip-path: circle(0px at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  animation: ripple-expand 0.5s ease-in-out forwards;
+}
+
+::view-transition-old(root) {
+  animation: none;
+}
+
+@keyframes ripple-expand {
+  to {
+    clip-path: circle(var(--ripple-radius, 100vmax) at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  }
+}
+
+/* Icon slide (ThemeToggleRipple) */
+::view-transition-old(theme-icon) {
+  animation: icon-exit 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(theme-icon) {
+  animation: icon-enter 0.3s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes icon-exit {
+  to { opacity: 0; transform: translateY(100%); }
+}
+
+@keyframes icon-enter {
+  from { opacity: 0; transform: translateY(-100%); }
+}
+
+/* ThemeToggleBulb */
+@keyframes bulb-expand {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+@keyframes bulb-contract {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+
+/* ThemeToggleCRT */
+@keyframes crt-off {
+  0%   { transform: scaleY(1);     opacity: 1; }
+  75%  { transform: scaleY(0.002); opacity: 1; }
+  100% { transform: scaleY(0.002); opacity: 0; }
+}
+
+@keyframes crt-on {
+  0%   { transform: scaleY(0.002); opacity: 1; }
+  75%  { transform: scaleY(1);     opacity: 1; }
+  100% { transform: scaleY(1);     opacity: 0; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root),
+  ::view-transition-old(root),
+  ::view-transition-new(theme-icon),
+  ::view-transition-old(theme-icon) {
+    animation: none;
+  }
+}
