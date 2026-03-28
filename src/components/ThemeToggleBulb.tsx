@@ -65,6 +65,8 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
       aria-label={label}
       className={[
         buttonClass,
+        // overflow-visible is intentional: the halo span is larger than the button
+        // and must bleed outside its bounds. Do not change to overflow-hidden.
         'relative flex items-center justify-center rounded-full cursor-pointer overflow-visible',
         'group transition-all duration-200 focus-visible:outline-none',
         'focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2',

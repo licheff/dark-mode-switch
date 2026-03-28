@@ -115,6 +115,21 @@ describe('ThemeToggleBulb', () => {
     expect(radius).toBeGreaterThan(0)
   })
 
+  it('uses resolvedTheme when theme is "system" (system preference set to dark)', () => {
+    vi.mocked(useTheme).mockReturnValue({
+      theme: 'system',
+      setTheme: mockSetTheme,
+      resolvedTheme: 'dark',
+      themes: ['light', 'dark'],
+      systemTheme: 'dark',
+      forcedTheme: undefined,
+    })
+    render(<ThemeToggleBulb />)
+    expect(screen.getByRole('button', { name: 'Switch to light mode' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button'))
+    expect(mockSetTheme).toHaveBeenCalledWith('light')
+  })
+
   it('calls setTheme via the try/catch fallback when startViewTransition throws on object arg', () => {
     // Simulate a browser that supports startViewTransition(fn) but not the typed object form
     Object.defineProperty(document, 'startViewTransition', {
