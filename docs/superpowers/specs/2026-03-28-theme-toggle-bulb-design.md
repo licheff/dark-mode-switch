@@ -232,7 +232,37 @@ Item 7 is new logic with no equivalent in `ThemeToggleRipple` and must be explic
 
 ## Demo Page
 
-Update `App.tsx` to render both `ThemeToggleRipple` and `ThemeToggleBulb` side by side so they can be compared visually.
+`App.tsx` becomes a minimal component playground. One variant is shown at a time, selected via a shadcn `Select` dropdown. This sets up the page for future additions: more variants and per-variant controls (speed, size, etc.).
+
+### Layout
+
+- Center of the page: the active toggle variant at `lg` size
+- Below the toggle: a shadcn `Select` labeled "Variant" listing all available options
+- No other UI — keep it focused on the toggle itself
+
+### Variant registry
+
+Define a small config object in `App.tsx` (or a co-located `variants.ts`) that maps variant keys to display names and components:
+
+```ts
+const variants = {
+  ripple: { label: 'Ripple', component: ThemeToggleRipple },
+  bulb:   { label: 'Bulb',   component: ThemeToggleBulb },
+}
+```
+
+`App.tsx` holds a `activeVariant` state string, renders the matching component, and passes its key list to the `Select`. Adding a new variant means adding one entry to this object.
+
+### shadcn setup
+
+Install shadcn and add the `Select` component. No other shadcn components needed for this spec. The shadcn CLI handles component scaffolding:
+
+```
+npx shadcn@latest init
+npx shadcn@latest add select
+```
+
+shadcn requires a `components.json` config and injects component source into `src/components/ui/`. These files are owned by the project (not a node_module) and should be committed.
 
 ---
 
@@ -243,5 +273,5 @@ To copy `ThemeToggleBulb` into another project:
 1. Copy `ThemeToggleBulb.tsx` into the target project's components folder
 2. Ensure `lucide-react` and `next-themes` are installed
 3. Add the bulb-transition CSS block to the project's global stylesheet
-4. Ensure the CSS custom properties `--ripple-x`, `--ripple-y`, and `--ripple-radius` are set on `:root` at runtime — this is handled inside the component's `handleClick`, no external setup needed
+4. Ensure the CSS custom properties `--bulb-x`, `--bulb-y`, and `--bulb-radius` are set on `:root` at runtime — this is handled inside the component's `handleClick`, no external setup needed
 5. Confirm `ThemeProvider` wraps the app with `attribute="class"`
