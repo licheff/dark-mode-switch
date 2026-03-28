@@ -53,14 +53,29 @@
   }
 }
 
-/* ThemeToggleBulb warm-flash overlay animation.
-   Runs on the compositor — unaffected by JS style recalculations mid-animation. */
-@keyframes bulb-flash {
-  0%   { opacity: 0; }
-  47%  { opacity: 1; }   /* peak at ~280ms of 600ms total — theme changes here */
-  100% { opacity: 0; }
+/* ThemeToggleBulb ripple — to light: expands out from bulb; to dark: contracts in to bulb. */
+@keyframes bulb-expand {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 
+@keyframes bulb-contract {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+
+/* ThemeToggleCRT — off: collapses to a horizontal line; on: expands from a line */
+@keyframes crt-off {
+  0%   { transform: scaleY(1);     opacity: 1; }
+  75%  { transform: scaleY(0.002); opacity: 1; }
+  100% { transform: scaleY(0.002); opacity: 0; }
+}
+
+@keyframes crt-on {
+  0%   { transform: scaleY(0.002); opacity: 1; }
+  75%  { transform: scaleY(1);     opacity: 1; }
+  100% { transform: scaleY(1);     opacity: 0; }
+}
 
 @theme inline {
   --font-heading: var(--font-sans);
