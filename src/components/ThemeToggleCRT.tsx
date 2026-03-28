@@ -47,11 +47,20 @@ export function ThemeToggleCRT({ size = 'md', className = '' }: ThemeToggleCRTPr
 
     // Going dark: start as full-screen, collapse to a line — theme switches as the line forms
     // Going light: start as a line, expand to full-screen — theme switches early so expansion reveals light mode
-    setTimeout(() => setTheme(nextTheme), isGoingDark ? 300 : 50)
-    setTimeout(() => overlay.remove(), 500)
 
-    // Remove any in-progress overlay before starting a new animation
-    document.querySelector('[data-crt-overlay]')?.remove()
+    // Cancel any in-progress animation before starting a new one
+    const existing = document.querySelector('[data-crt-overlay]') as HTMLElement | null
+    if (existing) {
+      clearTimeout(Number(existing.dataset.themeTimer))
+      clearTimeout(Number(existing.dataset.removeTimer))
+      existing.remove()
+    }
+
+    const themeTimer = setTimeout(() => setTheme(nextTheme), isGoingDark ? 300 : 50)
+    const removeTimer = setTimeout(() => overlay.remove(), 500)
+    overlay.dataset.themeTimer = String(themeTimer)
+    overlay.dataset.removeTimer = String(removeTimer)
+
     document.body.appendChild(overlay)
   }
 

@@ -42,7 +42,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   mockSetTheme.mockClear()
   // Clean up any overlay divs leaked by tests that don't advance timers to 500ms
-  document.body.querySelectorAll('div[style*="position: fixed"]').forEach(el => el.remove())
+  document.body.querySelectorAll('[data-crt-overlay]').forEach(el => el.remove())
 })
 
 describe('ThemeToggleCRT', () => {
