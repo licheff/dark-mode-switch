@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* Tell Tailwind v4 to use the .dark class for dark: variants (set by next-themes on <html>) */
+@custom-variant dark (&:is(.dark *));
+
+/*
+  View Transitions ripple animation.
+  --ripple-x, --ripple-y, --ripple-radius are set in px by ThemeToggleRipple on click.
+  The clip-path on ::view-transition-new(root) is the START state (0px circle).
+  The @keyframes only needs `to` because the start state is already defined here.
+*/
+::view-transition-new(root) {
+  clip-path: circle(0px at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  animation: ripple-expand 0.5s ease-in-out forwards;
+}
+
+::view-transition-old(root) {
+  animation: none;
+}
+
+@keyframes ripple-expand {
+  to {
+    clip-path: circle(var(--ripple-radius, 100vmax) at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  }
+}
+
+/* Icon slide animation — exits down, enters from below */
+::view-transition-old(theme-icon) {
+  animation: icon-exit 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(theme-icon) {
+  animation: icon-enter 0.3s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes icon-exit {
+  to { opacity: 0; transform: translateY(100%); }
+}
+
+@keyframes icon-enter {
+  from { opacity: 0; transform: translateY(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root),
+  ::view-transition-old(root),
+  ::view-transition-new(theme-icon),
+  ::view-transition-old(theme-icon) {
+    animation: none;
+  }
+}
