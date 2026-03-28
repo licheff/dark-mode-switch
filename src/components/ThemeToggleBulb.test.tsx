@@ -10,6 +10,8 @@ vi.mock('next-themes', () => ({
 const mockSetTheme = vi.fn()
 
 beforeEach(() => {
+  vi.useFakeTimers()
+
   vi.mocked(useTheme).mockReturnValue({
     theme: 'light',
     setTheme: mockSetTheme,
@@ -27,9 +29,25 @@ beforeEach(() => {
 
   Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true })
   Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true })
+
+  // matchMedia is not implemented in jsdom — mock it to return no reduced motion by default
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   mockSetTheme.mockClear()
 })
@@ -87,6 +105,7 @@ describe('ThemeToggleBulb', () => {
   it('calls setTheme("dark") when clicked in light mode', () => {
     render(<ThemeToggleBulb />)
     fireEvent.click(screen.getByRole('button'))
+    vi.advanceTimersByTime(280)
     expect(mockSetTheme).toHaveBeenCalledWith('dark')
   })
 
@@ -101,18 +120,26 @@ describe('ThemeToggleBulb', () => {
     })
     render(<ThemeToggleBulb />)
     fireEvent.click(screen.getByRole('button'))
+    vi.advanceTimersByTime(280)
     expect(mockSetTheme).toHaveBeenCalledWith('light')
   })
 
-  it('sets --bulb-x, --bulb-y, --bulb-radius CSS custom properties on click', () => {
+  it('calls setTheme immediately when prefers-reduced-motion is set', () => {
+    vi.mocked(window.matchMedia).mockReturnValue({
+      matches: true,
+      media: '(prefers-reduced-motion: reduce)',
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })
+
     render(<ThemeToggleBulb />)
     fireEvent.click(screen.getByRole('button'))
-
-    // Center of mocked rect: left(100) + width(44)/2 = 122px, top(50) + height(44)/2 = 72px
-    expect(document.documentElement.style.getPropertyValue('--bulb-x')).toBe('122px')
-    expect(document.documentElement.style.getPropertyValue('--bulb-y')).toBe('72px')
-    const radius = parseInt(document.documentElement.style.getPropertyValue('--bulb-radius'))
-    expect(radius).toBeGreaterThan(0)
+    // setTheme is called synchronously when reduced motion is active — no timer needed
+    expect(mockSetTheme).toHaveBeenCalledWith('dark')
   })
 
   it('uses resolvedTheme when theme is "system" (system preference set to dark)', () => {
@@ -127,21 +154,8 @@ describe('ThemeToggleBulb', () => {
     render(<ThemeToggleBulb />)
     expect(screen.getByRole('button', { name: 'Switch to light mode' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button'))
+    vi.advanceTimersByTime(280)
     expect(mockSetTheme).toHaveBeenCalledWith('light')
   })
 
-  it('calls setTheme via the try/catch fallback when startViewTransition throws on object arg', () => {
-    // Simulate a browser that supports startViewTransition(fn) but not the typed object form
-    Object.defineProperty(document, 'startViewTransition', {
-      value: (arg: unknown) => {
-        if (typeof arg !== 'function') throw new Error('Not supported')
-        ;(arg as () => void)()
-      },
-      configurable: true,
-    })
-
-    render(<ThemeToggleBulb />)
-    fireEvent.click(screen.getByRole('button'))
-    expect(mockSetTheme).toHaveBeenCalledWith('dark')
-  })
 })

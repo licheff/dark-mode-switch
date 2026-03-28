@@ -8,9 +8,9 @@ interface ThemeToggleBulbProps {
 }
 
 const sizeConfig = {
-  sm: { iconSize: 16, buttonClass: 'w-8 h-8',   haloClass: 'w-16 h-16' },
-  md: { iconSize: 20, buttonClass: 'w-11 h-11',  haloClass: 'w-20 h-20' },
-  lg: { iconSize: 24, buttonClass: 'w-12 h-12',  haloClass: 'w-24 h-24' },
+  sm: { iconSize: 16, buttonClass: 'w-8 h-8' },
+  md: { iconSize: 20, buttonClass: 'w-11 h-11' },
+  lg: { iconSize: 24, buttonClass: 'w-12 h-12' },
 }
 
 export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulbProps) {
@@ -23,38 +23,45 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
   const isDark = resolvedTheme === 'dark'
   const nextTheme = isDark ? 'light' : 'dark'
   const label = isDark ? 'Switch to light mode' : 'Switch to dark mode'
-  const { iconSize, buttonClass, haloClass } = sizeConfig[size]
+  const { iconSize, buttonClass } = sizeConfig[size]
 
   const handleClick = () => {
     if (!buttonRef.current) return
 
+    // Skip animation for users who prefer reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTheme(nextTheme)
+      return
+    }
+
     const rect = buttonRef.current.getBoundingClientRect()
     const x = rect.left + rect.width / 2
     const y = rect.top + rect.height / 2
-    const dx = Math.max(x, window.innerWidth - x)
-    const dy = Math.max(y, window.innerHeight - y)
-    const radius = Math.ceil(Math.sqrt(dx * dx + dy * dy))
 
-    document.documentElement.style.setProperty('--bulb-x', `${x}px`)
-    document.documentElement.style.setProperty('--bulb-y', `${y}px`)
-    document.documentElement.style.setProperty('--bulb-radius', `${radius}px`)
+    // Warm amber overlay that floods from the bulb position, peaks, then fades
+    // as the new theme settles underneath.
+    const overlay = document.createElement('div')
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      background: radial-gradient(circle at ${x}px ${y}px, rgb(251 191 36 / 0.55) 0%, transparent 65%);
+      opacity: 0;
+      transition: opacity 280ms ease-out;
+    `
+    document.body.appendChild(overlay)
 
-    // Feature-detect typed startViewTransition (Chrome 125+).
-    // Older browsers that only accept a function will throw on the object form.
-    const svt = (document as Document & {
-      startViewTransition?: (arg: (() => void) | { update: () => void; types: string[] }) => unknown
-    }).startViewTransition
+    // Force reflow so the transition fires from opacity 0
+    overlay.getBoundingClientRect()
+    overlay.style.opacity = '1'
 
-    if (svt) {
-      try {
-        svt.call(document, { update: () => setTheme(nextTheme), types: ['bulb-transition'] })
-      } catch {
-        // Fallback: browser supports startViewTransition but not the typed object form
-        svt.call(document, () => setTheme(nextTheme))
-      }
-    } else {
+    setTimeout(() => {
       setTheme(nextTheme)
-    }
+      overlay.style.opacity = '0'
+      overlay.style.transition = 'opacity 320ms ease-in'
+      setTimeout(() => overlay.remove(), 320)
+    }, 280)
   }
 
   return (
@@ -65,34 +72,21 @@ export function ThemeToggleBulb({ size = 'md', className = '' }: ThemeToggleBulb
       aria-label={label}
       className={[
         buttonClass,
-        // overflow-visible is intentional: the halo span is larger than the button
-        // and must bleed outside its bounds. Do not change to overflow-hidden.
-        'relative flex items-center justify-center rounded-full cursor-pointer overflow-visible',
-        'group transition-all duration-200 focus-visible:outline-none',
+        'flex items-center justify-center rounded-full cursor-pointer',
+        'hover:scale-110 transition-transform duration-200 focus-visible:outline-none',
         'focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2',
-        !isDark && 'hover:scale-110',
         className,
       ].filter(Boolean).join(' ')}
     >
-      {/* Warm halo — blooms in light mode, contracts in dark mode */}
+      {/* Icon with drop-shadow glow in light mode, dimmed in dark mode */}
       <span
-        className={[
-          'absolute inset-0 m-auto rounded-full transition-all duration-300',
-          haloClass,
-          isDark
-            ? 'opacity-0 scale-75 group-hover:opacity-40 group-hover:scale-90'
-            : 'opacity-100 scale-100',
-        ].join(' ')}
-        style={{ background: 'radial-gradient(circle, rgb(252 211 77 / 0.8), transparent 70%)' }}
-      />
-      {/* Icon — warms in light mode, cools in dark mode */}
-      <span
-        className={[
-          'relative transition-all duration-300',
-          isDark
-            ? 'text-zinc-400 group-hover:text-zinc-300'
-            : 'text-amber-400 group-hover:opacity-80',
-        ].join(' ')}
+        className={isDark ? 'text-zinc-400' : 'text-amber-400'}
+        style={{
+          filter: isDark
+            ? 'none'
+            : 'drop-shadow(0 0 5px rgb(251 191 36 / 0.9)) drop-shadow(0 0 14px rgb(251 191 36 / 0.4))',
+          transition: 'filter 300ms ease, color 300ms ease',
+        }}
       >
         <Lightbulb size={iconSize} />
       </span>
