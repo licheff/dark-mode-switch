@@ -2,6 +2,8 @@
 
 Animated dark/light mode toggle components for React. Three variants — each with its own distinct animation effect.
 
+**[▶ Live demo](https://dark-mode-switch-rho.vercel.app)** · [npm](https://www.npmjs.com/package/@licheff/dark-mode-switch)
+
 ## Variants
 
 | Component | Animation |
