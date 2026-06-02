@@ -26,7 +26,9 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'DarkModeSwitch',
       formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format}.js`,
+      // Node treats .js as ESM under "type": "module", so the CJS build must use
+      // the .cjs extension to be parsed as CommonJS by require() consumers.
+      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
     },
     rollupOptions: {
       // These packages must be provided by the consuming project — don't bundle them
