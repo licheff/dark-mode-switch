@@ -33,3 +33,7 @@ npm-debug.log*
 # Superpowers brainstorming artifacts
 .superpowers/
 docs/superpowers/
+
+# Other
+TODO.md
+PLAN.md
